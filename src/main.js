@@ -21,7 +21,9 @@ router.beforeEach((to, from, next) => {
 new Vue({
     data: function () {
         return {
-            selectedLeaf: {}
+            selectedLeaf: {},
+            loadingTree: false,
+            refreshing: null
         }
     },
     router,

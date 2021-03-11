@@ -1,21 +1,27 @@
 <template>
-  <div id="editor">
+  <div>
     <v-alert
         v-if="alert"
-        dismissible
+        mode="in-out"
         elevation="2"
         type="success"
-    ></v-alert>
-    <span class="sectionTitle editorSection">Editor</span>
-    <textarea :value="input" @input="update($event.target.value)"></textarea>
-    <span class="sectionTitle prevSection">Preview</span>
-    <div v-html="compiledMarkdown"></div>
-    <v-btn class="custom-button"
-           color="#388E3C"
-           fab
-           @click="updateNote">
-      <v-icon>mdi-content-save</v-icon>
-    </v-btn>
+        class="alert"
+    >File saved
+    </v-alert>
+    <div id="editor">
+      <span class="sectionTitle editorSection">Editor</span>
+      <textarea :value="input"
+                @input="update($event.target.value)"
+                @keydown.ctrl.83.prevent.stop="updateNote"></textarea>
+      <span class="sectionTitle prevSection">Preview</span>
+      <div v-html="compiledMarkdown"></div>
+      <v-btn class="custom-button"
+             color="#388E3C"
+             fab
+             @click="updateNote">
+        <v-icon>mdi-content-save</v-icon>
+      </v-btn>
+    </div>
   </div>
 </template>
 
@@ -35,6 +41,9 @@ export default {
       input: '',
       alert: false
     }
+  },
+  watch: {
+    'alert': 'timeoutAlert'
   },
   computed: {
     compiledMarkdown: function () {
@@ -56,6 +65,11 @@ export default {
       } catch (e) {
         console.error(e);
       }
+    },
+    timeoutAlert: function () {
+      setTimeout(() => {
+        this.alert = false;
+      }, 3000);
     }
   }
 }
@@ -116,5 +130,12 @@ code {
   position: fixed;
   right: 1%;
   bottom: 2%;
+}
+
+.alert {
+  position: absolute !important;
+  top: 15px;
+  right: 20px;
+  z-index: 9999;
 }
 </style>

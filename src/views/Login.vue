@@ -71,15 +71,15 @@ export default {
   methods: {
     authenticate: async function () {
       try {
-        this.error = false
+        this.error = false;
         const response = await axios.post(this.backAddress() + 'auth', {
           login: this.login,
           password: this.password
-        })
-        this.$data.token = response.data.token
+        });
+        this.$data.token = response.data.token;
         setTimeout(() => {
-          this.$router.push({name: 'Home'})
-        }, 100)
+          this.$router.push({name: 'Home'});
+        }, 100);
       } catch (e) {
         console.error(e);
         this.error = true;
@@ -91,6 +91,6 @@ export default {
 
 <style>
 .login {
-  max-width: 700px!important;
+  max-width: 700px !important;
 }
 </style>

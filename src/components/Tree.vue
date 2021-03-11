@@ -1,8 +1,13 @@
 <template>
   <div class="tree">
-    <ul class="parent-tree-list">
+    <ul class="parent-tree-list" v-if="$root.$data.loadingTree === false">
       <Leaf v-for="leaf in tree" :key="leaf.id" :leaf="leaf"></Leaf>
     </ul>
+    <v-row v-else
+           align="center"
+           justify="space-around">
+      <v-icon class="loading" color="primary">mdi-loading mdi-spin</v-icon>
+    </v-row>
     <div class="actions">
       <v-speed-dial
           v-model="fab"
@@ -25,6 +30,7 @@
           </v-btn>
         </template>
         <v-btn
+            :disabled="$root.$data.selectedLeaf.title"
             fab
             dark
             small
@@ -33,6 +39,7 @@
           <v-icon>mdi-leaf</v-icon>
         </v-btn>
         <v-btn
+            :disabled="!$root.$data.selectedLeaf.label"
             fab
             dark
             small
@@ -41,6 +48,7 @@
           <v-icon>mdi-language-markdown</v-icon>
         </v-btn>
         <v-btn
+            :disabled="!$root.$data.selectedLeaf.id"
             fab
             dark
             small
@@ -56,7 +64,12 @@
       <v-card>
         <v-container>
           {{ dialog.title }}
-          <v-text-field v-if="dialog.label" :label="dialog.label" v-model="dialog.data"></v-text-field>
+          <div v-if="dialog.label">
+            <v-text-field
+                :label="dialog.label"
+                v-model="dialog.data"
+                @keydown.enter="dialog.action"></v-text-field>
+          </div>
         </v-container>
         <v-card-actions>
           <v-spacer></v-spacer>
@@ -102,13 +115,19 @@ export default {
   methods: {
     createLeaf: async function () {
       try {
+        if (!this.$root.$data.selectedLeaf.id) {
+          this.$root.$data.loadingTree = true;
+        }
+        const parentLeaf = this.$root.$data.selectedLeaf.id ? this.$root.$data.selectedLeaf.id : null;
         const response = await axios.post(this.backAddress() + 'leaf', {
           label: this.dialog.data,
-          parentLeaf: this.$root.$data.selectedLeaf ? this.$root.$data.selectedLeaf.id : null
+          parentLeaf: parentLeaf
         }, this.getHeaders());
         if (response) {
           this.dialog.triggered = false;
           this.dialog.data = null;
+          this.$root.$data.loadingTree = false;
+          this.$root.$data.refreshing = parentLeaf ? 'leaf' : 'parents'
         }
       } catch (e) {
         console.error(e);
@@ -116,13 +135,16 @@ export default {
     },
     createNote: async function () {
       try {
-        const response = await axios.post(this.backAddress() + 'notes', {
-          title: this.dialog.data,
-          leaf: this.$root.$data.selectedLeaf ? this.$root.$data.selectedLeaf.id : null
-        }, this.getHeaders());
-        if (response) {
-          this.dialog.triggered = false;
-          this.dialog.data = null;
+        if (this.$root.$data.selectedLeaf.id) {
+          const response = await axios.post(this.backAddress() + 'notes', {
+            title: this.dialog.data,
+            leaf: this.$root.$data.selectedLeaf.id
+          }, this.getHeaders());
+          if (response) {
+            this.dialog.triggered = false;
+            this.dialog.data = null;
+            this.$root.$data.refreshing = 'leaf';
+          }
         }
       } catch (e) {
         console.error(e);
@@ -140,7 +162,17 @@ export default {
             this.getHeaders());
         if (response) {
           this.dialog.triggered = false;
-          console.log(response)
+          if (type === 'notes') {
+            this.$root.$data.selectedLeaf.id = this.$root.$data.selectedLeaf.leaf;
+            this.$root.$data.refreshing = 'leaf';
+          } else {
+            if (this.$root.$data.selectedLeaf.parentLeaf) {
+              this.$root.$data.selectedLeaf.id = this.$root.$data.selectedLeaf.parentLeaf;
+              this.$root.$data.refreshing = 'leaf';
+            } else {
+              this.$root.$data.refreshing = 'parents';
+            }
+          }
         }
       } catch (e) {
         console.error(e);
@@ -165,10 +197,12 @@ export default {
             this.dialog.title = 'Are tou sure you want to delete this note ?';
             this.dialog.action = this.delete;
             this.dialog.triggered = true;
+            this.dialog.label = null;
           } else {
             this.dialog.action = this.delete;
             this.dialog.title = 'Are tou sure you want to delete this leaf ?';
             this.dialog.triggered = true;
+            this.dialog.label = null;
           }
           break;
       }
@@ -188,5 +222,15 @@ export default {
   position: absolute;
   bottom: 5px;
   right: 5px;
+}
+
+.loading {
+  font-size: 30px !important;
+  margin-top: 20px;
+}
+
+.mdi-spin:before {
+  -webkit-animation: mdi-spin 1s infinite linear !important;
+  animation: mdi-spin 1s infinite linear !important;
 }
 </style>

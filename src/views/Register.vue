@@ -76,14 +76,14 @@ export default {
         const response = await axios.post(this.backAddress() + 'users', {
           login: this.login,
           password: this.password
-        })
+        });
         if (response.data) {
           this.alert = {
             color: 'green',
             icon: 'mdi-check',
             message: 'Congrats, you can now login to the app !',
             type: 'success'
-          }
+          };
         }
       } catch (e) {
         console.error(e);
@@ -92,7 +92,7 @@ export default {
           icon: 'mdi-close',
           message: 'Oops, an error occured...',
           type: 'error'
-        }
+        };
       }
     }
   }

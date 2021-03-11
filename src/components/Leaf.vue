@@ -27,6 +27,9 @@ export default {
       selectedLeaf: {}
     }
   },
+  watch: {
+    '$root.$data.refreshing': 'refresh'
+  },
   methods: {
     getLeaf: async function (leaf) {
       try {
@@ -39,6 +42,12 @@ export default {
         }
       } catch (e) {
         console.error(e);
+      }
+    },
+    refresh: async function () {
+      if (this.$root.$data.refreshing === 'leaf') {
+        await this.getLeaf(this.selectedLeaf);
+        this.$root.$data.refreshing = null;
       }
     }
   },
@@ -60,13 +69,16 @@ export default {
 }
 
 .node {
-  padding: 5px;
-  border-radius: 25px;
+  padding: 6px;
+  border-radius: 30px;
   margin-top: 2px;
+  margin-right: 10px;
+  margin-left: 5px;
 }
 
 .node.active, .node:hover {
   background-color: #515151 !important;
+  cursor: pointer;
 }
 
 .label {

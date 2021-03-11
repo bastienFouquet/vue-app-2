@@ -7,7 +7,7 @@ export default Vue.mixin({
         }
     },
     watch: {
-      token: 'setToken'
+        token: 'setToken'
     },
     created: function () {
         this.restoreToken();
@@ -26,11 +26,17 @@ export default Vue.mixin({
         },
         restoreToken: function () {
             if (localStorage.token) {
-                this.token = localStorage.token
+                this.token = localStorage.token;
             }
         },
         setToken: function () {
-            localStorage.setItem('token', this.token)
+            localStorage.setItem('token', this.token);
+        },
+        logout: function () {
+            localStorage.removeItem('token');
+            setTimeout(() => {
+                this.$router.push({name: 'Login'});
+            }, 100)
         }
     }
 })
